@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Users, Target } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
-const campaigns = [
+const initialCampaigns = [
   { id: 1, title: 'Global Water Project', goal: 50000, raised: 32400, description: 'Providing clean water access to rural communities in Africa.', image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&q=80&w=800' },
   { id: 2, title: 'Child Education Fund', goal: 25000, raised: 18000, description: 'Sponsoring school supplies and tuition for underprivileged children.', image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=800' },
   { id: 3, title: 'Wildlife Preservation', goal: 100000, raised: 45000, description: 'Protecting endangered species and their natural habitats.', image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&q=80&w=800' },
@@ -16,6 +18,20 @@ const campaigns = [
 ];
 
 const Home = () => {
+  const [campaigns, setCampaigns] = useState(initialCampaigns);
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "campaigns"));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (data.length > 0) setCampaigns(data);
+      } catch (err) {
+        console.error("Firebase connection error. Using local fallback data.", err);
+      }
+    };
+    fetchCampaigns();
+  }, []);
   return (
     <div style={{ padding: '2rem' }}>
       <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
